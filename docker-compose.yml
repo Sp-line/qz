@@ -1,0 +1,15 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: rabbitmq_qz
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  postgres:
+    image: postgres:16.2
+    container_name: postgres_qz
+    env_file:
+      - ./backend/.env
+    ports:
+      - "5433:5432"
