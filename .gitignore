@@ -1,0 +1,26 @@
+# =========================
+# OS-specific junk
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Python / Django
+# =========================
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+*.pot
+*.py~
+.env
+.env.*
+db.sqlite3
+
+# Virtual environments
+env/
+venv/
+backend/env/
+
+.idea/
+backend/.idea/
