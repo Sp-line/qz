@@ -70,7 +70,7 @@ class UserRepository:
                 "folders",
                 queryset=Folder.objects.filter(folders_q)
                 .annotate(
-                    modules_count=Count("modules")
+                    modules_count=Count("modules", distinct=True),
                 )
                 .with_ann_saved(user)
                 .with_ann_pinned(user),
@@ -81,7 +81,7 @@ class UserRepository:
                 .select_related("lang_from", "lang_to", "topic")
                 .annotate(
                     avg_rate=Avg("rates__rate"),
-                    cards_count=Count("cards"),
+                    cards_count=Count("cards", distinct=True),
                 )
                 .with_ann_saved(user)
                 .with_ann_pinned(user)

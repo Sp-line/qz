@@ -1,16 +1,15 @@
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from abstracts.permissions import IsObjPublic
-from common.permissions import IsObjAdmin, IsObjOwner
-from modules.permissions import (
-    ModuleObjIsPublic,
-    ModuleObjIsOwner,
-    ModuleHasViewerOrEditorRoles,
+from folders.permissions import (
+    FolderObjUpdatePolicyPermission,
+    FolderObjRetrievePolicyPermission,
+    FolderObjPinsPolicyPermission,
+    FolderObjManageModulePermission,
 )
 
 CREATE_POLICY = [IsAuthenticated]
 
-UPDATE_POLICY = [IsAuthenticated, IsObjAdmin | IsObjOwner]
+UPDATE_POLICY = [IsAuthenticated, FolderObjUpdatePolicyPermission]
 
 PARTIAL_UPDATE_POLICY = UPDATE_POLICY
 
@@ -18,25 +17,13 @@ DESTROY_POLICY = UPDATE_POLICY
 
 LIST_POLICY = [AllowAny]
 
-RETRIEVE_POLICY = [IsObjAdmin | IsObjOwner | IsObjPublic]
+RETRIEVE_POLICY = [FolderObjRetrievePolicyPermission]
 
-PINS_POLICY = [IsAuthenticated, IsObjAdmin | IsObjOwner | IsObjPublic]
+PINS_POLICY = [IsAuthenticated, FolderObjPinsPolicyPermission]
 
 SAVES_POLICY = PINS_POLICY
 
-MANAGE_MODULE_POLICY = [
-    (
-        IsObjAdmin
-        | (
-            IsObjOwner
-            & (
-                ModuleObjIsPublic
-                | ModuleObjIsOwner
-                | ModuleHasViewerOrEditorRoles
-            )
-        )
-    )
-]
+MANAGE_MODULE_POLICY = [IsAuthenticated, FolderObjManageModulePermission]
 
 
 POLICIES = {

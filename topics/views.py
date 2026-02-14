@@ -4,7 +4,8 @@ from typing import TYPE_CHECKING
 
 from django.core.cache import cache
 from drf_spectacular.utils import extend_schema
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets
+from rest_framework.permissions import BasePermission, AllowAny, IsAdminUser
 from rest_framework.response import Response
 
 from .cache import CACHE_TOPICS_KEY, CACHE_TOPICS_TTL
@@ -29,9 +30,9 @@ class TopicViewSet(viewsets.ModelViewSet):
         cache.set(CACHE_TOPICS_KEY, response.data, CACHE_TOPICS_TTL)
         return response
 
-    def get_permissions(self) -> list[permissions.BasePermission]:
+    def get_permissions(self) -> list[BasePermission]:
         if self.action in {"list", "retrieve"}:
-            return [permissions.AllowAny()]
+            return [AllowAny()]
         elif self.action in {"create", "update", "partial_update", "destroy"}:
-            return [permissions.IsAdminUser()]
+            return [IsAdminUser()]
         return super().get_permissions()

@@ -1,35 +1,16 @@
 from rest_framework.permissions import IsAuthenticated
 
-from common.permissions import IsObjAdmin, partial_cls, RelatedObjPermissionProxy
-from generic_status.permissions import HasObjRoles
-from modules.models import Module
-from modules.permissions import (
-    ModuleObjIsOwner,
-    ModuleObjIsPublic,
-    ModuleHasViewerOrEditorRoles,
-)
+from cards.permissions import CardObjRetrievePolicyPermission, IsObjCardModuleUserHasEditPermission
 
-RETRIEVE_POLICY = [
-    ModuleObjIsPublic | IsObjAdmin | ModuleObjIsOwner | ModuleHasViewerOrEditorRoles
-]
+RETRIEVE_POLICY = [CardObjRetrievePolicyPermission]
 
 LIST_POLICY = RETRIEVE_POLICY
 
 LEARNS_POLICY = RETRIEVE_POLICY
 
-SAVES_POLICY = [IsAuthenticated, ModuleObjIsPublic | IsObjAdmin | ModuleObjIsOwner | ModuleHasViewerOrEditorRoles]
+SAVES_POLICY = [IsAuthenticated, CardObjRetrievePolicyPermission]
 
-CREATE_POLICY = [
-    IsAuthenticated,
-    ModuleObjIsOwner
-    | partial_cls(
-        RelatedObjPermissionProxy,
-        decorated=partial_cls(HasObjRoles, roles=["editor"]),
-        model=Module,
-        lookup_url_kwarg="module_pk",
-    )
-    | IsObjAdmin,
-]
+CREATE_POLICY = [IsAuthenticated, IsObjCardModuleUserHasEditPermission]
 
 UPDATE_POLICY = CREATE_POLICY
 

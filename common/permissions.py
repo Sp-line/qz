@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, Any, Type, TypeVar, Callable
+from typing import TYPE_CHECKING, Optional, Any, Type
 
-from rest_framework.permissions import BasePermission
 from django.db.models import Q
+from rest_framework.permissions import BasePermission
+
 from common.access_chain import AccessibleChain
 from common.decorators import login_required_link
 
@@ -11,84 +12,28 @@ if TYPE_CHECKING:
     from django.db.models import Model
     from rest_framework.request import Request
     from rest_framework.views import APIView
-    from django.http import HttpRequest
 
 
-T = TypeVar("T", bound=BasePermission)
-
-
-class RelatedObjPermissionProxy:
-    def __init__(
-        self,
-        decorated: Callable[..., T],
-        model: Type[Model],
-        lookup_url_kwarg: str,
-        *args: Any,
-        **kwargs: Any,
-    ) -> None:
-        self.decorated_instance: T = decorated(*args, **kwargs)
-        self.model = model
-        self.lookup_url_kwarg = lookup_url_kwarg
-
-    def has_object_permission(
-        self,
-        request: Request,
-        view: APIView,
-        obj: Model,
-    ) -> bool:
-        nested_id = view.kwargs.get(self.lookup_url_kwarg)
-        if nested_id is not None:
-            try:
-                obj = self.model.objects.get(id=nested_id)
-            except self.model.DoesNotExist:
-                return False
-        return self.decorated_instance.has_object_permission(request, view, obj)
-
-    def __getattr__(self, name: str) -> Any:
-        return getattr(self.decorated_instance, name)
-
-    def __setattr__(self, name: str, value: Any) -> None:
-        if name in ("decorated_instance", "model", "lookup_url_kwarg"):
-            object.__setattr__(self, name, value)
-        else:
-            setattr(self.decorated_instance, name, value)
-
-    def __delattr__(self, name: str) -> None:
-        if name in ("decorated_instance", "model", "lookup_url_kwarg"):
-            object.__delattr__(self, name)
-        else:
-            delattr(self.decorated_instance, name)
-
-
-def partial_cls(
-    base: Any,
-    *args: Any,
-    **kwargs: Any,
-) -> Any:
+def partial_cls(base: Any, *args: Any, **kwargs: Any) -> Any:
     class Adapter(base):
         def __init__(self):
             super().__init__(*args, **kwargs)
-
     return Adapter
 
 
 class IsObjOwner(BasePermission):
-    def has_object_permission(
-        self,
-        request: Request,
-        view: APIView,
-        obj: Any,
-    ) -> bool:
+    def has_object_permission(self, request: Request, view: APIView, obj: Any) -> bool:
+        user = request.user
+        if not user.is_authenticated:
+            return False
         return obj.user == request.user
 
 
 class IsObjAdmin(BasePermission):
-    def has_object_permission(
-        self,
-        request: Request,
-        view: APIView,
-        obj: Any,
-    ) -> bool:
+    def has_object_permission(self,request: Request,view: APIView,obj: Any) -> bool:
+        user = request.user
+        if not user.is_authenticated:
+            return False
         return bool(request.user and request.user.is_staff)
 
 
@@ -102,11 +47,52 @@ class OwnerIncludedLink(AccessibleChain):
         return super().handle(q)
 
 
-def get_accessible_q(
-    request: Request | HttpRequest,
-    links: list[Type[AccessibleChain]],
-) -> Q:
+def get_accessible_q(request: Request, links: list[Type[AccessibleChain]]) -> Q:
     root = AccessibleChain(request)
     for l in links:
         root.add(l())
     return root.handle()
+
+
+class MatchAllPermissions(BasePermission):
+    permissions_to_check: list[type[BasePermission]] | None = None
+
+    def has_permission(self, request: Request, view: APIView) -> bool:
+        for perm_class in self.permissions_to_check:
+            perm = perm_class()
+            if not perm.has_permission(request, view):
+                return False
+        return True
+
+    def has_object_permission(self, request: Request, view: APIView, obj: Model) -> bool:
+        for perm_class in self.permissions_to_check:
+            perm = perm_class()
+            if not perm.has_object_permission(request, view, obj):
+                return False
+        return True
+
+
+class MatchAnyPermissions(BasePermission):
+    permissions_to_check: list[type[BasePermission]] | None = None
+
+    def has_permission(self, request, view):
+        for perm_class in self.permissions_to_check:
+            perm = perm_class()
+            if perm.has_permission(request, view):
+                return True
+        return False
+
+    def has_object_permission(self, request, view, obj):
+        for perm_class in self.permissions_to_check:
+            perm = perm_class()
+            if perm.has_object_permission(request, view, obj):
+                return True
+        return False
+
+
+def get_obj_from_view_kwargs[T](view: APIView, lookup_url_kwarg: str, model_class: type[T]) -> T | None:
+    obj_id = view.kwargs.get(lookup_url_kwarg)
+    try:
+        return model_class.objects.get(pk=obj_id)
+    except model_class.DoesNotExist:
+        return None

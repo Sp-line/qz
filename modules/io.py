@@ -1,29 +1,16 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Any
 
 from django.core.exceptions import ValidationError
-from rest_framework import permissions
+from rest_framework.permissions import BasePermission, IsAuthenticated
 
-from abstracts.permissions import IsObjPublic
-from common.permissions import IsObjAdmin, IsObjOwner, partial_cls
-from generic_status.permissions import HasObjRoles
 from io_manager.io import ExportStrategy, ImportStrategy
-
-if TYPE_CHECKING:
-    from typing import Any
-    from rest_framework.permissions import BasePermission
+from modules.permissions import ModuleObjExportPolicyPermission
 
 
 class ModuleCardsExporter(ExportStrategy):
-    perms: list[BasePermission] = [
-        (
-            IsObjPublic
-            | IsObjAdmin
-            | IsObjOwner
-            | partial_cls(HasObjRoles, roles=["editor", "viewer"])
-        )()
-    ]
+    perms: list[BasePermission] = [ModuleObjExportPolicyPermission()]
 
     def export_data(self) -> list[dict[str, str]]:
         from cards.models import Card
@@ -36,7 +23,7 @@ class ModuleCardsExporter(ExportStrategy):
 
 
 class ModuleCardsImporter(ImportStrategy):
-    perms: list[BasePermission] = [permissions.IsAuthenticated()]
+    perms: list[BasePermission] = [IsAuthenticated()]
 
     def import_data(self, data: list[dict[str, Any]]) -> None:
         from cards.models import Card

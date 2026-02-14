@@ -22,7 +22,7 @@ class UserFolderListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Folder
-        fields = ["id", "user", "name", "color", "modules_count", "saved", "pinned"]
+        fields = ["id", "user", "name", "color", "modules_count", "saved", "pinned", "visible"]
 
 
 class UserModuleListSerializer(serializers.ModelSerializer):
@@ -58,7 +58,8 @@ class UserModuleListSerializer(serializers.ModelSerializer):
             "saved",
             "pinned",
             "user_perm",
-            "avg_rate"
+            "avg_rate",
+            "visible"
         ]
 
 

@@ -1,40 +1,28 @@
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from abstracts.permissions import IsObjPublic
-from common.permissions import IsObjAdmin, IsObjOwner, partial_cls
-from generic_status.permissions import HasObjRoles
-
+from modules.permissions import (
+    ModuleObjDestroyPolicyPermission,
+    ModuleObjUpdatePolicyPermission,
+    ModuleObjRetrievePolicyPermission,
+    ModuleObjPinsPolicyPermission,
+    ModuleObjRatesPolicyPermission,
+)
 
 CREATE_POLICY = [IsAuthenticated]
 
-DESTROY_POLICY = [IsAuthenticated, IsObjOwner | IsObjAdmin]
+DESTROY_POLICY = [IsAuthenticated, ModuleObjDestroyPolicyPermission]
 
-UPDATE_POLICY = [IsObjAdmin | IsObjOwner | partial_cls(HasObjRoles, roles=["editor"])]
+UPDATE_POLICY = [IsAuthenticated, ModuleObjUpdatePolicyPermission]
 
 PARTIAL_UPDATE_POLICY = UPDATE_POLICY
 
 LIST_POLICY = [AllowAny]
 
-RETRIEVE_POLICY = [
-    IsObjAdmin
-    | IsObjOwner
-    | IsObjPublic
-    | partial_cls(HasObjRoles, roles=["editor", "viewer"])
-]
+RETRIEVE_POLICY = [ModuleObjRetrievePolicyPermission]
 
-RATES_POLICY = [
-    IsAuthenticated,
-    ~IsObjOwner
-    & (IsObjPublic | IsObjAdmin | partial_cls(HasObjRoles, roles=["viewer", "editor"])),
-]
+RATES_POLICY = [IsAuthenticated, ModuleObjRatesPolicyPermission]
 
-PINS_POLICY = [
-    IsAuthenticated,
-    IsObjPublic
-    | IsObjAdmin
-    | IsObjOwner
-    | partial_cls(HasObjRoles, roles=["editor", "viewer"]),
-]
+PINS_POLICY = [IsAuthenticated, ModuleObjPinsPolicyPermission]
 
 SAVES_POLICY = PINS_POLICY
 

@@ -7,6 +7,7 @@ from rest_framework.permissions import BasePermission
 
 from common.access_chain import AccessibleChain
 from common.decorators import login_required_link
+from common.permissions import MatchAnyPermissions, IsObjAdmin, IsObjOwner
 from generic_status.models import Perm
 
 if TYPE_CHECKING:
@@ -57,3 +58,7 @@ class PermissionIncludedLink(AccessibleChain):
             ).values("object_id")
         )
         return super().handle(q)
+
+
+class PermObjCanUserManagePermissionPolicy(MatchAnyPermissions):
+    permissions_to_check = [IsObjAdmin, IsObjOwner]

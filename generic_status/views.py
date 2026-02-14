@@ -3,13 +3,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from django.contrib.contenttypes.models import ContentType
-from rest_framework import status, permissions
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from common.permissions import IsObjOwner, IsObjAdmin
+from common.permissions import IsObjOwner
 from generic_status.models import Learn, Rate, Perm
+from generic_status.permissions import PermObjCanUserManagePermissionPolicy
 from generic_status.serializers import (
     RateSerializer,
     PermSerializer,
@@ -19,7 +20,7 @@ from generic_status.serializers import (
 from users.models import User
 
 if TYPE_CHECKING:
-    from rest_framework.permissions import BasePermission
+    from rest_framework.permissions import BasePermission, IsAuthenticated
     from rest_framework.request import Request
     from rest_framework.serializers import Serializer
     from django.db.models import Model
@@ -110,7 +111,7 @@ class LearnMixin(BaseUserRelationMixin):
 
     def get_permissions(self) -> list[BasePermission]:
         if self.action == "learns":
-            return [permissions.IsAuthenticated()]
+            return [IsAuthenticated()]
         return super().get_permissions()
 
     def get_serializer_class(self) -> Type[Serializer]:
@@ -193,7 +194,10 @@ class PermMixin(BaseUserRelationMixin):
 
     def get_permissions(self) -> list[BasePermission]:
         if self.action in {"perms", "delete_perm", "list_perm_users"}:
-            return [(IsObjAdmin | IsObjOwner)()]
+            return [
+                IsAuthenticated(),
+                PermObjCanUserManagePermissionPolicy()
+            ]
         return super().get_permissions()
 
     def get_serializer_class(self) -> Type[Serializer]:

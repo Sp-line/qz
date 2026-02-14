@@ -20,7 +20,7 @@ class FolderListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Folder
-        fields = ["id", "user", "name", "color", "modules_count"]
+        fields = ["id", "user", "name", "color", "modules_count", "visible"]
 
 
 class FolderModuleListSerializer(serializers.ModelSerializer):
