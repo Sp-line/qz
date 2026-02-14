@@ -1,6 +1,7 @@
 from rest_framework.permissions import IsAuthenticated
 
-from cards.permissions import CardObjRetrievePolicyPermission, IsObjCardModuleUserHasEditPermission
+from cards.permissions import CardObjRetrievePolicyPermission, IsObjCardModuleUserHasEditPermission, \
+    CardObjCreatePolicyPermission
 
 RETRIEVE_POLICY = [CardObjRetrievePolicyPermission]
 
@@ -10,7 +11,7 @@ LEARNS_POLICY = RETRIEVE_POLICY
 
 SAVES_POLICY = [IsAuthenticated, CardObjRetrievePolicyPermission]
 
-CREATE_POLICY = [IsAuthenticated, IsObjCardModuleUserHasEditPermission]
+CREATE_POLICY = [IsAuthenticated, CardObjCreatePolicyPermission]
 
 UPDATE_POLICY = CREATE_POLICY
 
