@@ -1,13 +1,12 @@
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 
-from common.permissions import IsObjAdmin, IsObjOwner
-
+from integration.permissions import DeepLApiKeyObjRetrievePolicyPermission
 
 LIST_POLICY = [IsAdminUser]
 
 CREATE_POLICY = [IsAuthenticated]
 
-RETRIEVE_POLICY = [IsAuthenticated, IsObjAdmin | IsObjOwner]
+RETRIEVE_POLICY = [IsAuthenticated, DeepLApiKeyObjRetrievePolicyPermission]
 
 UPDATE_POLICY = RETRIEVE_POLICY
 

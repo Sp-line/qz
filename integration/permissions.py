@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from rest_framework import permissions
 
+from common.permissions import MatchAnyPermissions, IsObjAdmin, IsObjOwner
 from integration.models import DeepLApiKey
 
 if TYPE_CHECKING:
@@ -20,3 +21,7 @@ class HasAcceptedDeepLApiKeyView(permissions.BasePermission):
             )
         except DeepLApiKey.DoesNotExist:
             return False
+
+
+class DeepLApiKeyObjRetrievePolicyPermission(MatchAnyPermissions):
+    permissions_to_check = [IsObjAdmin, IsObjOwner]
