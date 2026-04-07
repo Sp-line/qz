@@ -6,6 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from common.permissions import IsObjOwner
@@ -20,7 +21,7 @@ from generic_status.serializers import (
 from users.models import User
 
 if TYPE_CHECKING:
-    from rest_framework.permissions import BasePermission, IsAuthenticated
+    from rest_framework.permissions import BasePermission
     from rest_framework.request import Request
     from rest_framework.serializers import Serializer
     from django.db.models import Model
